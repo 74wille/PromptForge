@@ -96,10 +96,15 @@ Alla som installerat appen får den automatiskt: uppdateraren kollar vid start
 och sedan var fjärde timme, hämtar i bakgrunden och visar en notis där man kan
 starta om direkt. Gör man inte det installeras den nästa gång appen stängs.
 
-`npm run release` sätter och pushar git-taggen innan bygget publiceras. Den
-ordningen är inte valfri — GitHub vägrar skapa en publicerad release vars tagg
-inte redan finns, och felet syns först som ett `422 Validation Failed` när
-installeraren ska laddas upp.
+`npm run release` skapar först releasen med `gh`, och låter sedan
+electron-builder bara ladda upp filerna i den. Ordningen är inte valfri:
+electron-builder kör sin publicerare en gång per fil, och om ingen release
+finns försöker båda skapa den. Den ena vinner, den andra avbryter med
+`422 already_exists` — och tar med sig filerna den skulle ha laddat upp.
+
+Resultatet blir en release som ser klar ut men saknar `latest.yml`, vilket gör
+den osynlig för uppdateraren. Kontrollera alltid att releasen fick tre filer:
+installeraren, dess blockmap och `latest.yml`.
 
 Uppdateringar fungerar bara i den installerade versionen. Kör man från
 projektmappen hoppar uppdateraren tyst över, eftersom det inte finns någon
