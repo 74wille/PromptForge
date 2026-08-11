@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="sv">
+<head>
+  <meta charset="utf-8">
+  <title>PromptForge</title>
+  <style>
+    html, body {
+      margin: 0;
+      height: 100%;
+      background: transparent;
+      overflow: hidden;
+      font: 13px/1.45 "Segoe UI", system-ui, sans-serif;
+      user-select: none;
+    }
+
+    /* Marginalen är inte dekoration: skuggan ritas inuti fönstret, och utan
+       plats att tona ut i kapas den tvärt vid fönsterkanten. Den negativa
+       spridningen håller den innanför marginalen. */
+    .toast {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin: 22px;
+      padding: 13px 13px 13px 14px;
+      border-radius: 14px;
+      border: 1px solid var(--line);
+      background: var(--chrome);
+      color: var(--text);
+      box-shadow:
+        0 14px 34px -10px rgba(0, 0, 0, 0.62),
+        0 4px 12px -6px rgba(0, 0, 0, 0.5),
+        inset 0 1px 0 rgba(255, 255, 255, 0.05);
+      cursor: pointer;
+      animation: enter 0.24s cubic-bezier(0.2, 0.9, 0.3, 1);
+    }
+
+    /* Uttoningen spelas innan fönstret stängs, annars försvinner rutan med ett
+       hopp som ser ut som ett fel. */
+    .toast.is-leaving { animation: leave 0.16s ease-in forwards; }
+
+    @keyframes enter { from { opacity: 0; transform: translateY(14px) scale(0.96); } }
+    @keyframes leave { to { opacity: 0; transform: translateY(6px) scale(0.98); } }
+
+    /* Tonad platta i flikens färg, med bocken i samma ton. */
+    .mark {
+      display: flex;
+      flex: none;
+      width: 38px;
+      height: 38px;
+      align-items: center;
+      justify-content: center;
+      border-radius: 11px;
+      background: color-mix(in srgb, var(--accent) 17%, transparent);
+      box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent) 34%, transparent);
+    }
+
+    .mark svg {
+      width: 19px;
+      height: 19px;
+      fill: none;
+      stroke: var(--accent);
+      stroke-width: 2.3;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    .body { flex: 1; min-width: 0; }
+
+    .title,
+    .text {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .title { font-size: 13px; font-weight: 600; letter-spacing: 0.1px; }
+    .text { margin-top: 2px; font-size: 12px; color: var(--muted); }
+
+    /* Krysset syns alltid, men dämpat tills man är på väg mot det. */
+    .close {
+      display: flex;
+      flex: none;
+      width: 24px;
+      height: 24px;
+      align-items: center;
+      justify-content: center;
+      border: none;
+      border-radius: 7px;
+      background: none;
+      color: var(--muted);
+      cursor: pointer;
+      opacity: 0.55;
+      transition: opacity 0.12s, background 0.12s, color 0.12s;
+    }
+
+    .toast:hover .close { opacity: 1; }
+    .close:hover { background: var(--hover); color: var(--text); }
+
+    .close svg {
+      width: 12px;
+      height: 12px;
+      fill: none;
+      stroke: currentColor;
+      stroke-width: 1.9;
+      stroke-linecap: round;
+    }
+  </style>
+</head>
+<body>
+  <div class="toast" id="toast">
+    <span class="mark" aria-hidden="true">
+      <svg viewBox="0 0 24 24"><path d="m4.5 12.5 5.5 5.5L19.5 6"/></svg>
+    </span>
+
+    <div class="body">
+      <div class="title" id="title"></div>
+      <div class="text" id="text"></div>
+    </div>
+
+    <button class="close" id="close" aria-label="Stang">
+      <svg viewBox="0 0 16 16"><path d="m4 4 8 8M12 4l-8 8"/></svg>
+    </button>
+  </div>
+
+  <script src="toast-view.js"></script>
+</body>
+</html>

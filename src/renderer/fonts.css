@@ -1,0 +1,152 @@
+/* Typsnitten följer med programmet i stället för att behöva installeras.
+   Alla sex är släppta under SIL Open Font License 1.1, som uttryckligen
+   tillåter att de paketeras och distribueras med en applikation. Licenstexten
+   för varje familj ligger bredvid filerna i fonts/.
+
+   Bara latinsk teckenuppsättning tas med — resten skulle mångdubbla storleken
+   utan att synas i en terminal. */
+
+/* --- JetBrains Mono ------------------------------------------------------ */
+@font-face {
+  font-family: 'JetBrains Mono';
+  font-style: normal;
+  font-weight: 400;
+  src: url('fonts/jetbrains-mono-latin-400-normal.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'JetBrains Mono';
+  font-style: italic;
+  font-weight: 400;
+  src: url('fonts/jetbrains-mono-latin-400-italic.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'JetBrains Mono';
+  font-style: normal;
+  font-weight: 700;
+  src: url('fonts/jetbrains-mono-latin-700-normal.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'JetBrains Mono';
+  font-style: italic;
+  font-weight: 700;
+  src: url('fonts/jetbrains-mono-latin-700-italic.woff2') format('woff2');
+}
+
+/* --- Cascadia Code ------------------------------------------------------- */
+@font-face {
+  font-family: 'Cascadia Code';
+  font-style: normal;
+  font-weight: 400;
+  src: url('fonts/cascadia-code-latin-400-normal.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Cascadia Code';
+  font-style: italic;
+  font-weight: 400;
+  src: url('fonts/cascadia-code-latin-400-italic.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Cascadia Code';
+  font-style: normal;
+  font-weight: 700;
+  src: url('fonts/cascadia-code-latin-700-normal.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Cascadia Code';
+  font-style: italic;
+  font-weight: 700;
+  src: url('fonts/cascadia-code-latin-700-italic.woff2') format('woff2');
+}
+
+/* --- IBM Plex Mono ------------------------------------------------------- */
+@font-face {
+  font-family: 'IBM Plex Mono';
+  font-style: normal;
+  font-weight: 400;
+  src: url('fonts/ibm-plex-mono-latin-400-normal.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'IBM Plex Mono';
+  font-style: italic;
+  font-weight: 400;
+  src: url('fonts/ibm-plex-mono-latin-400-italic.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'IBM Plex Mono';
+  font-style: normal;
+  font-weight: 700;
+  src: url('fonts/ibm-plex-mono-latin-700-normal.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'IBM Plex Mono';
+  font-style: italic;
+  font-weight: 700;
+  src: url('fonts/ibm-plex-mono-latin-700-italic.woff2') format('woff2');
+}
+
+/* --- Iosevka ------------------------------------------------------------- */
+@font-face {
+  font-family: 'Iosevka';
+  font-style: normal;
+  font-weight: 400;
+  src: url('fonts/iosevka-latin-400-normal.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Iosevka';
+  font-style: italic;
+  font-weight: 400;
+  src: url('fonts/iosevka-latin-400-italic.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Iosevka';
+  font-style: normal;
+  font-weight: 700;
+  src: url('fonts/iosevka-latin-700-normal.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Iosevka';
+  font-style: italic;
+  font-weight: 700;
+  src: url('fonts/iosevka-latin-700-italic.woff2') format('woff2');
+}
+
+/* --- Fira Code ----------------------------------------------------------- */
+/* Fira Code saknar kursiv i grundutgåvan — webbläsaren lutar den själv. */
+@font-face {
+  font-family: 'Fira Code';
+  font-style: normal;
+  font-weight: 400;
+  src: url('fonts/fira-code-latin-400-normal.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Fira Code';
+  font-style: normal;
+  font-weight: 700;
+  src: url('fonts/fira-code-latin-700-normal.woff2') format('woff2');
+}
+
+/* --- Geist Mono ---------------------------------------------------------- */
+@font-face {
+  font-family: 'Geist Mono';
+  font-style: normal;
+  font-weight: 400;
+  src: url('fonts/geist-mono-latin-400-normal.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Geist Mono';
+  font-style: italic;
+  font-weight: 400;
+  src: url('fonts/geist-mono-latin-400-italic.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Geist Mono';
+  font-style: normal;
+  font-weight: 700;
+  src: url('fonts/geist-mono-latin-700-normal.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Geist Mono';
+  font-style: italic;
+  font-weight: 700;
+  src: url('fonts/geist-mono-latin-700-italic.woff2') format('woff2');
+}

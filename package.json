@@ -1,0 +1,67 @@
+{
+  "name": "promptforge",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Anpassningsbar Windows-terminal dar du valjer vilka verktyg som ska finnas i miljon",
+  "author": "Jimmy Andersen",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/74wille/PromptForge.git"
+  },
+  "main": "src/main/main.js",
+  "scripts": {
+    "start": "electron .",
+    "icon": "electron tools/make-icon.js",
+    "dist": "electron-builder --win",
+    "release": "electron-builder --win --publish always"
+  },
+  "dependencies": {
+    "@lydell/node-pty": "1.2.0-beta.15",
+    "@xterm/addon-fit": "^0.10.0",
+    "@xterm/addon-unicode11": "^0.9.0",
+    "@xterm/addon-web-links": "^0.12.0",
+    "@xterm/xterm": "^5.5.0",
+    "electron-updater": "^6.8.9"
+  },
+  "devDependencies": {
+    "electron": "^32.2.0",
+    "electron-builder": "^26.15.3"
+  },
+  "build": {
+    "appId": "com.promptforge.app",
+    "productName": "PromptForge",
+    "directories": {
+      "output": "dist",
+      "buildResources": "build"
+    },
+    "files": [
+      "src/**/*",
+      "build/icon.ico",
+      "package.json"
+    ],
+    "asarUnpack": [
+      "**/node_modules/@lydell/**"
+    ],
+    "publish": [
+      {
+        "provider": "github",
+        "owner": "74wille",
+        "repo": "PromptForge"
+      }
+    ],
+    "win": {
+      "target": [
+        "nsis"
+      ],
+      "icon": "build/icon.ico"
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "PromptForge"
+    }
+  }
+}

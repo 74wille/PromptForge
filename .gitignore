@@ -1,0 +1,6 @@
+node_modules/
+dist/
+*.log
+
+# Genererat av tools/make-icon.js — ikonen sjalv checkas in, resten inte.
+build/storage-dump.json

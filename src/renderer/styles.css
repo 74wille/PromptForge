@@ -1,0 +1,797 @@
+/* Alla färger kommer från det valda temat. JavaScript skriver om variablerna
+   här nedanför när man byter tema, så hela programmet följer med — inte bara
+   terminalytan. Värdena här är bara vad som gäller innan temat laddats. */
+:root {
+  --bg: #0f1117;
+  --chrome: #161923;
+  --raised: #1d2130;
+  --line: #272c3d;
+  --text: #e6e8f0;
+  --muted: #868da5;
+  --accent: #7c9cff;
+  --accent-soft: rgba(124, 156, 255, 0.16);
+  --hover: rgba(255, 255, 255, 0.08);
+  --danger: #e8536a;
+}
+
+* { box-sizing: border-box; }
+
+[hidden] { display: none !important; }
+
+html, body {
+  margin: 0;
+  height: 100%;
+  overflow: hidden;
+  background: var(--bg);
+  color: var(--text);
+  font: 13px/1.5 "Segoe UI", system-ui, sans-serif;
+}
+
+body { transition: background 0.2s, color 0.2s; }
+
+.app { display: flex; flex-direction: column; height: 100%; }
+
+/* --- Topbar -------------------------------------------------------------- */
+
+/* Fönstret är ramlöst, så den här raden är både verktygsfält och titelrad.
+   Hela ytan drar fönstret; allt klickbart måste därför sättas till no-drag. */
+.topbar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex: none;
+  height: 44px;
+  padding: 0 0 0 12px;
+  background: var(--chrome);
+  border-bottom: 1px solid var(--line);
+  -webkit-app-region: drag;
+}
+
+/* Även barnen måste undantas. Annars ärver flikens text topbarens dragyta, och
+   ett musnedtryck på namnet flyttar hela fönstret i stället för fliken. */
+/* Lyser upp när en flik dras från ett annat fönster och skulle landa här. */
+.topbar.is-dock-target {
+  background: color-mix(in srgb, var(--accent) 12%, var(--chrome));
+  box-shadow: inset 0 0 0 2px var(--accent);
+}
+
+.icon-btn,
+.icon-btn *,
+.session-tab,
+.session-tab *,
+.win-btn,
+.win-btn * { -webkit-app-region: no-drag; }
+
+.brand { display: flex; align-items: center; gap: 8px; margin-right: 6px; }
+
+.brand-mark { display: flex; width: 20px; height: 20px; }
+
+/* Fosforglöden görs med drop-shadow i stället för ett SVG-filter — vid 20 px
+   skulle en riktig gaussisk oskärpa bara bli grumlig. */
+.brand-mark svg {
+  width: 100%;
+  height: 100%;
+  filter: drop-shadow(0 0 2px rgba(94, 240, 138, 0.6));
+}
+
+/* Markören i logotypen blinkar som en riktig prompt — hårt av och på, inte
+   mjukt intonad, precis som en textmarkör beter sig. */
+@keyframes mark-blink {
+  0%, 49% { opacity: 1; }
+  50%, 100% { opacity: 0; }
+}
+
+.mark-cursor { animation: mark-blink 1.15s infinite; }
+
+@media (prefers-reduced-motion: reduce) {
+  .mark-cursor { animation: none; }
+}
+
+.brand-name { font-size: 12.5px; font-weight: 600; letter-spacing: 0.2px; }
+
+.spacer { flex: 1; }
+
+.icon-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border: 1px solid transparent;
+  border-radius: 7px;
+  background: none;
+  color: var(--muted);
+  cursor: pointer;
+  transition: background 0.12s, color 0.12s, border-color 0.12s;
+}
+
+.icon-btn:hover { background: var(--raised); color: var(--text); border-color: var(--line); }
+
+.icon-btn svg {
+  width: 15px;
+  height: 15px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* --- Sessionsflikar ------------------------------------------------------ */
+
+.sessions { display: flex; align-items: center; gap: 2px; overflow-x: auto; scrollbar-width: none; }
+.sessions::-webkit-scrollbar { display: none; }
+
+.session-tab {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  height: 28px;
+  padding: 0 11px;
+  border-radius: 7px;
+  color: var(--muted);
+  font-size: 12px;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+body.is-pulling-tab { cursor: grabbing; }
+
+/* Luckan som visar var fliken hamnar om man släpper inne i raden. Själva
+   fliken ritas under dragningen av huvudprocessen, i ett eget fönster. */
+.tab-placeholder {
+  height: 28px;
+  border-radius: 7px;
+  background: var(--hover);
+  box-shadow: inset 0 0 0 1px var(--line);
+}
+
+.session-tab:hover { background: var(--raised); color: var(--text); }
+.session-tab.is-active { background: var(--bg); color: var(--text); box-shadow: inset 0 0 0 1px var(--line); }
+.session-tab.is-dead .session-name { text-decoration: line-through; opacity: 0.55; }
+
+/* Vald flikfärg tonas in i bakgrunden. Låg andel med flit — den ska gå att
+   känna igen i ögonvrån utan att skrika över resten av topbaren. */
+.session-tab.has-color { background: color-mix(in srgb, var(--tab-color) 13%, transparent); }
+.session-tab.has-color:hover { background: color-mix(in srgb, var(--tab-color) 22%, transparent); }
+
+.session-tab.has-color.is-active {
+  background: color-mix(in srgb, var(--tab-color) 20%, var(--bg));
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--tab-color) 45%, transparent);
+}
+
+/* Färgprickens enda uppgift är att göra fliken igenkännbar i ögonvrån.
+   Den svaga ringen finns för att den vita standardprickens kant ska synas även
+   mot ett ljust tema. */
+.session-dot {
+  width: 7px;
+  height: 7px;
+  flex: none;
+  border-radius: 50%;
+  background: var(--tab-color, #ffffff);
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.2);
+}
+
+.session-name { max-width: 180px; overflow: hidden; text-overflow: ellipsis; }
+
+.session-rename {
+  width: 110px;
+  padding: 1px 4px;
+  border: 1px solid var(--accent);
+  border-radius: 5px;
+  background: var(--bg);
+  color: var(--text);
+  font: inherit;
+  outline: none;
+}
+
+/* --- Fönsterknappar ------------------------------------------------------ */
+
+.win-controls { display: flex; align-self: stretch; }
+
+.win-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 46px;
+  border: none;
+  background: none;
+  color: var(--muted);
+  cursor: pointer;
+  transition: background 0.12s, color 0.12s;
+}
+
+.win-btn:hover { background: var(--hover); color: var(--text); }
+.win-btn--close:hover { background: #e81123; color: #fff; }
+
+.win-btn svg {
+  width: 10px;
+  height: 10px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1;
+  shape-rendering: crispEdges;
+}
+
+/* Kugghjulet delar knappform med fönsterknapparna, men behöver rundare
+   streckavslut och mer yta än de raka systemikonerna. */
+.win-btn--settings svg {
+  width: 16px;
+  height: 16px;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  shape-rendering: auto;
+}
+
+/* Maximera och återställ delar knapp — bara en ikon i taget visas. */
+.win-btn [data-icon="restore"] { display: none; }
+body.is-maximized .win-btn [data-icon="maximize"] { display: none; }
+body.is-maximized .win-btn [data-icon="restore"] { display: block; }
+
+/* --- Terminalyta --------------------------------------------------------- */
+
+.stage { flex: 1; display: flex; min-height: 0; }
+.terminal-host { position: relative; flex: 1; min-width: 0; overflow: hidden; }
+
+/* Bakgrundsbilden ligger under terminalen. xterm ritas med allowTransparency
+   så att bilden syns igenom teckenrutorna. */
+.backdrop {
+  position: absolute;
+  inset: 0;
+  background-size: cover;
+  background-position: center;
+  pointer-events: none;
+}
+
+.terminals { position: absolute; inset: 0; }
+
+/* Ingen padding — terminalen ska gå ända ut i kanterna. */
+.term-wrap { position: absolute; inset: 0; display: none; }
+.term-wrap.is-active { display: block; }
+.term-wrap .xterm { height: 100%; }
+
+.empty {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  color: var(--muted);
+  text-align: center;
+}
+
+.empty.is-hidden { display: none; }
+.empty h2 { margin: 0; font-size: 15px; font-weight: 600; color: var(--text); }
+.empty p { margin: 0; font-size: 12.5px; }
+.empty strong { color: var(--accent); font-weight: 600; }
+
+/* --- Dialoger ------------------------------------------------------------ */
+
+.modal {
+  width: min(780px, calc(100vw - 64px));
+  max-height: calc(100vh - 80px);
+  padding: 0;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--chrome);
+  color: var(--text);
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.5);
+  overflow: hidden;
+}
+
+.modal--ask { width: min(420px, calc(100vw - 64px)); }
+
+.modal::backdrop { background: rgba(6, 8, 14, 0.55); backdrop-filter: blur(3px); }
+.modal[open] { display: flex; flex-direction: column; }
+
+.modal-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex: none;
+  padding: 8px 10px 0 12px;
+  border-bottom: 1px solid var(--line);
+}
+
+.modal-tabs { display: flex; gap: 2px; }
+
+.modal-tab {
+  padding: 8px 14px 10px;
+  border: none;
+  border-bottom: 2px solid transparent;
+  background: none;
+  color: var(--muted);
+  font: inherit;
+  font-size: 12.5px;
+  cursor: pointer;
+  transition: color 0.12s, border-color 0.12s;
+}
+
+.modal-tab:hover { color: var(--text); }
+.modal-tab.is-active { color: var(--text); border-bottom-color: var(--accent); }
+
+.modal-close {
+  display: flex;
+  width: 26px;
+  height: 26px;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: 7px;
+  background: none;
+  color: var(--muted);
+  cursor: pointer;
+}
+
+.modal-close:hover { background: var(--raised); color: var(--text); }
+
+.modal-close svg {
+  width: 15px; height: 15px; fill: none; stroke: currentColor;
+  stroke-width: 1.6; stroke-linecap: round;
+}
+
+.modal-body { flex: 1; overflow-y: auto; padding: 16px; }
+
+.modal-body--split {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  align-items: start;
+}
+
+/* Varje inställningsgrupp är ett eget kort. Det ger luft mellan grupperna
+   utan att man behöver linjer eller rubriker som skriker. */
+.card {
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: 11px;
+  background: var(--bg);
+}
+
+.card + .card { margin-top: 12px; }
+.modal-body--split .card + .card { margin-top: 0; }
+.card--preview { grid-column: 1 / -1; }
+
+.card h3 {
+  margin: 0 0 2px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.hint { margin: 0 0 10px; font-size: 11.5px; color: var(--muted); }
+.card h3 + .options,
+.card h3 + .segmented,
+.card h3 + .theme-grid,
+.card h3 + .field,
+.card h3 + .preview,
+.card h3 + .thumb { margin-top: 10px; }
+
+.modal-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  flex: none;
+  padding: 12px 16px;
+  border-top: 1px solid var(--line);
+  background: var(--chrome);
+}
+
+.modal-foot--end { justify-content: flex-end; }
+.foot-note { margin: 0; font-size: 11.5px; color: var(--muted); }
+
+/* --- Förhandsvisning ----------------------------------------------------- */
+
+/* Visar typsnitt, färger, bakgrundsbild, genomskinlighet och markörstil på en
+   gång, så man slipper stänga inställningarna för att se resultatet. */
+.preview {
+  position: relative;
+  height: 132px;
+  border-radius: 9px;
+  border: 1px solid var(--line);
+  overflow: hidden;
+}
+
+.preview-backdrop {
+  position: absolute;
+  inset: 0;
+  background-size: cover;
+  background-position: center;
+}
+
+.preview-text {
+  position: relative;
+  margin: 0;
+  padding: 10px 12px;
+  white-space: pre;
+  overflow: hidden;
+}
+
+.preview-cursor { display: inline-block; vertical-align: text-bottom; }
+.preview-cursor--bar { width: 2px; height: 1em; }
+.preview-cursor--block { width: 0.6em; height: 1em; }
+.preview-cursor--underline { width: 0.6em; height: 2px; }
+
+/* --- Temaväljare --------------------------------------------------------- */
+
+.theme-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
+
+.theme-card {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  padding: 8px;
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  background: none;
+  color: var(--muted);
+  font: inherit;
+  font-size: 12px;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 0.12s, color 0.12s;
+}
+
+.theme-card:hover { color: var(--text); }
+.theme-card.is-selected { border-color: var(--accent); color: var(--text); }
+
+.theme-swatch {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  height: 34px;
+  padding: 0 9px;
+  border-radius: 7px;
+  overflow: hidden;
+  border: 1px solid rgba(128, 128, 128, 0.3);
+}
+
+.theme-dot { width: 9px; height: 9px; flex: none; border-radius: 50%; }
+
+/* Textfärgen som ett streck, så att kontrasten mot bakgrunden syns direkt. */
+.theme-line { flex: 1; height: 3px; margin-left: 2px; border-radius: 2px; opacity: 0.85; }
+
+/* Visas bara när det egna temat är valt. */
+.custom-colors {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin-top: 10px;
+  padding-top: 11px;
+  border-top: 1px solid var(--line);
+}
+
+.swatch-field { display: flex; flex-direction: column; gap: 5px; cursor: pointer; }
+.swatch-field span { font-size: 11px; color: var(--muted); text-align: center; }
+
+.swatch-field input[type="color"] {
+  width: 100%;
+  height: 30px;
+  padding: 0;
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  background: none;
+  cursor: pointer;
+}
+
+.swatch-field input[type="color"]::-webkit-color-swatch-wrapper { padding: 2px; }
+.swatch-field input[type="color"]::-webkit-color-swatch { border: none; border-radius: 5px; }
+
+/* --- Segmenterad kontroll ------------------------------------------------ */
+
+.segmented {
+  display: flex;
+  gap: 2px;
+  padding: 2px;
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  background: var(--chrome);
+}
+
+.segment {
+  flex: 1;
+  padding: 6px 8px;
+  border: none;
+  border-radius: 7px;
+  background: none;
+  color: var(--muted);
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+  transition: background 0.12s, color 0.12s;
+}
+
+.segment:hover { color: var(--text); }
+.segment.is-selected { background: var(--accent-soft); color: var(--text); }
+
+/* --- Bakgrundsminiatyr --------------------------------------------------- */
+
+.thumb {
+  position: relative;
+  height: 152px;
+  margin-bottom: 10px;
+  border: 1px dashed var(--line);
+  border-radius: 9px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.thumb.has-image { border-style: solid; }
+.thumb-empty { font-size: 11.5px; color: var(--muted); }
+.thumb.has-image .thumb-empty { display: none; }
+
+/* Scenen får bildens exakta proportioner, så att rutan på den kan läsas rakt
+   av som andelar av bilden. */
+.crop-stage {
+  position: relative;
+  background-size: 100% 100%;
+  background-repeat: no-repeat;
+  border-radius: 5px;
+  overflow: hidden;
+  touch-action: none;
+}
+
+/* Den enorma skuggan mörklägger allt utanför rutan — enklare än att lägga fyra
+   separata överlägg runt om. */
+.crop-box {
+  position: absolute;
+  border: 1.5px solid #fff;
+  box-shadow: 0 0 0 2000px rgba(0, 0, 0, 0.52);
+  cursor: move;
+  touch-action: none;
+}
+
+.crop-handle {
+  position: absolute;
+  right: -6px;
+  bottom: -6px;
+  width: 13px;
+  height: 13px;
+  border: 1.5px solid rgba(0, 0, 0, 0.35);
+  border-radius: 4px;
+  background: #fff;
+  cursor: nwse-resize;
+}
+
+/* --- Formulärelement ----------------------------------------------------- */
+
+.options { display: flex; flex-direction: column; gap: 2px; }
+.options--grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 2px 8px; }
+
+.option {
+  display: flex;
+  align-items: baseline;
+  gap: 9px;
+  padding: 7px 9px;
+  border-radius: 7px;
+  cursor: pointer;
+  transition: background 0.12s;
+}
+
+.option:hover { background: var(--raised); }
+.option.is-selected { background: var(--accent-soft); }
+
+.option input { margin: 0; accent-color: var(--accent); flex: none; }
+
+.option-body { min-width: 0; }
+.option-name { display: block; font-size: 12.5px; }
+.option-note { display: block; font-size: 10.5px; color: var(--muted); overflow-wrap: anywhere; }
+
+.option.is-missing { opacity: 0.42; cursor: not-allowed; }
+.option.is-missing:hover { background: none; }
+
+.option-remove {
+  margin-left: auto;
+  align-self: center;
+  border: none;
+  border-radius: 5px;
+  background: none;
+  color: var(--muted);
+  font-size: 15px;
+  line-height: 1;
+  padding: 2px 5px;
+  cursor: pointer;
+  opacity: 0;
+}
+
+.option:hover .option-remove { opacity: 1; }
+.option-remove:hover { background: var(--hover); color: var(--text); }
+
+.field { display: block; margin-bottom: 12px; }
+.field:last-child { margin-bottom: 0; }
+
+.field > span {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 5px;
+  font-size: 11.5px;
+  color: var(--muted);
+}
+
+.field i { font-style: normal; }
+.field output { color: var(--text); font-variant-numeric: tabular-nums; }
+
+.field select,
+.field input[type="range"] { width: 100%; }
+
+.field select {
+  padding: 7px 8px;
+  background: var(--chrome);
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  color: var(--text);
+  font: inherit;
+}
+
+.field input[type="range"] { accent-color: var(--accent); }
+
+.row { display: flex; gap: 8px; margin-bottom: 12px; }
+.row--last { margin-bottom: 0; }
+
+.check {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 10px;
+  font-size: 12px;
+  color: var(--muted);
+  cursor: pointer;
+}
+
+.check input { margin: 0; accent-color: var(--accent); }
+.check:hover { color: var(--text); }
+
+/* --- Sökvägsruta --------------------------------------------------------- */
+
+.path-value {
+  margin-bottom: 10px;
+  padding: 8px 10px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--chrome);
+  font-size: 11.5px;
+  color: var(--muted);
+  overflow-wrap: anywhere;
+}
+
+
+.btn {
+  padding: 8px 14px;
+  border-radius: 7px;
+  border: 1px solid transparent;
+  font: inherit;
+  font-size: 12px;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: filter 0.12s, border-color 0.12s;
+}
+
+.btn-primary { background: var(--accent); color: var(--bg); font-weight: 600; }
+.btn-primary:hover { filter: brightness(1.08); }
+
+.btn-danger { background: var(--danger); color: #fff; font-weight: 600; }
+.btn-danger:hover { filter: brightness(1.08); }
+
+.btn-ghost { flex: 1; background: var(--raised); border-color: var(--line); color: var(--text); }
+.btn-ghost:hover { border-color: var(--accent); }
+
+.btn-block { display: block; width: 100%; margin-top: 8px; flex: none; }
+
+/* --- Bekräftelseruta ----------------------------------------------------- */
+
+.ask { padding: 22px 22px 18px; text-align: center; }
+
+.ask-icon {
+  display: flex;
+  width: 42px;
+  height: 42px;
+  margin: 0 auto 12px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: var(--accent-soft);
+  color: var(--danger);
+}
+
+.ask-icon svg {
+  width: 22px; height: 22px; fill: none; stroke: currentColor;
+  stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round;
+}
+
+.ask h2 { margin: 0 0 6px; font-size: 15px; font-weight: 600; }
+.ask p { margin: 0; font-size: 12.5px; color: var(--muted); }
+
+/* --- Högerklicksmeny ----------------------------------------------------- */
+
+.ctx-menu {
+  position: fixed;
+  z-index: 50;
+  min-width: 178px;
+  padding: 5px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--chrome);
+  box-shadow: 0 14px 34px rgba(0, 0, 0, 0.42);
+}
+
+.ctx-item {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  width: 100%;
+  padding: 7px 9px;
+  border: none;
+  border-radius: 7px;
+  background: none;
+  color: var(--text);
+  font: inherit;
+  font-size: 12.5px;
+  text-align: left;
+  cursor: pointer;
+}
+
+.ctx-item:hover { background: var(--raised); }
+.ctx-item--danger { color: var(--danger); }
+
+.ctx-item svg {
+  width: 14px; height: 14px; flex: none; fill: none; stroke: currentColor;
+  stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round;
+}
+
+.ctx-label {
+  padding: 8px 9px 4px;
+  font-size: 10.5px;
+  letter-spacing: 0.7px;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.ctx-colors {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 5px;
+  padding: 0 9px 7px;
+}
+
+.ctx-color {
+  width: 20px;
+  height: 20px;
+  border: 2px solid transparent;
+  border-radius: 50%;
+  background-clip: padding-box;
+  cursor: pointer;
+  padding: 0;
+}
+
+.ctx-color:hover { border-color: var(--muted); }
+.ctx-color.is-selected { border-color: var(--text); }
+
+.ctx-color--none {
+  position: relative;
+  background: var(--raised);
+  border-color: var(--line);
+}
+
+/* Diagonalt streck som visar "ingen färg". */
+.ctx-color--none::after {
+  content: "";
+  position: absolute;
+  inset: 3px;
+  background: linear-gradient(to top right,
+    transparent 44%, var(--muted) 44%, var(--muted) 56%, transparent 56%);
+}
+
+.ctx-sep { height: 1px; margin: 5px 4px; background: var(--line); }
+
+::-webkit-scrollbar { width: 9px; height: 9px; }
+::-webkit-scrollbar-thumb { background: var(--line); border-radius: 5px; }
+::-webkit-scrollbar-thumb:hover { background: var(--muted); }
+::-webkit-scrollbar-track { background: transparent; }
