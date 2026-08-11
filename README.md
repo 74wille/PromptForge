@@ -86,6 +86,25 @@ men bara om de faktiskt är installerade. Det avgörs genom att bredden på `i` 
 `W` mäts mot varandra: en familj som saknas faller tyst tillbaka på ett
 proportionellt typsnitt, och då skiljer sig bredderna åt.
 
+## Skicka ut en uppdatering
+
+1. Höj `version` i `package.json`
+2. Committa och pusha
+3. `npm run release`
+
+Alla som installerat appen får den automatiskt: uppdateraren kollar vid start
+och sedan var fjärde timme, hämtar i bakgrunden och visar en notis där man kan
+starta om direkt. Gör man inte det installeras den nästa gång appen stängs.
+
+`npm run release` sätter och pushar git-taggen innan bygget publiceras. Den
+ordningen är inte valfri — GitHub vägrar skapa en publicerad release vars tagg
+inte redan finns, och felet syns först som ett `422 Validation Failed` när
+installeraren ska laddas upp.
+
+Uppdateringar fungerar bara i den installerade versionen. Kör man från
+projektmappen hoppar uppdateraren tyst över, eftersom det inte finns någon
+installation att byta ut.
+
 ## Bygga en installerbar version
 
 ```

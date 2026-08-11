@@ -14,7 +14,8 @@
     "start": "electron .",
     "icon": "electron tools/make-icon.js",
     "dist": "electron-builder --win",
-    "release": "electron-builder --win --publish always"
+    "tag": "git tag v%npm_package_version% && git push origin v%npm_package_version%",
+    "release": "npm run tag && electron-builder --win --publish always"
   },
   "dependencies": {
     "@lydell/node-pty": "1.2.0-beta.15",
