@@ -1023,11 +1023,14 @@ function moveCursorToClick (id, term, wrap, event) {
 function registerSession (id, parts, config, meta) {
   const { wrap, term, fit } = parts
 
-  term.onData(data => {
-    window.forge.write(id, data)
-    // Tangenttryck är signalen om att du väntar dig ett svar. Startkommandot
-    // skickas inte den här vägen, så det armerar med flit inte aviseringen.
-    session.awaitingResult = true
+  term.onData(data => window.forge.write(id, data))
+
+  // Enter betyder "nu väntar jag på svar". onKey används i stället för onData
+  // eftersom den senare även bär sekvenser xterm skickar själv — bland annat
+  // när rutan får eller tappar fokus, vilket gjorde att ett klick i terminalen
+  // räknades som inmatning.
+  term.onKey(({ domEvent }) => {
+    if (domEvent.key === 'Enter' && !domEvent.shiftKey) session.submittedAt = Date.now()
   })
 
   // Urklippet hanteras här i stället för av xterm, eftersom Ctrl+C måste kunna
@@ -1125,8 +1128,8 @@ function registerSession (id, parts, config, meta) {
     defaultName: (meta && meta.defaultName) || 'Session',
     setup: config,
     dead: false,
-    // Sätts när du skriver något, nollställs när en avisering gått ut.
-    awaitingResult: false,
+    // När du senast tryckte Enter. Nollställs när en avisering gått ut.
+    submittedAt: null,
   }
 
   // Program säger till att de är klara med terminalklockan eller med en
@@ -1685,30 +1688,27 @@ const IDLE_MS = 3000
 const MIN_WORK_MS = 4000
 
 /**
- * Avgör när ett program blivit klart utan att programmet behöver säga till.
+ * Avgör när något du bett om blivit klart, utan att programmet behöver säga till.
  *
  * Terminalklockan vore exaktare, men den kräver att programmet är inställt på
- * att ringa i den — Claude Code gör det inte som standard. Att i stället mäta
- * när utdata tystnar fungerar för allt som körs, oavsett inställningar.
+ * att ringa i den — Claude Code gör det inte som standard.
  *
- * Kravet på att det hållit på ett tag är det som skiljer "ett bygge blev klart"
- * från "jag tryckte på en tangent".
+ * Klockan startar när du trycker Enter och stannar när utdata tystnat. Det
+ * mäter precis rätt sak: hur länge du väntat sedan du bad om något. Att i
+ * stället mäta från sessionens första utdata gav minutlånga tider, eftersom
+ * program som Claude Code ritar om sig med jämna mellanrum.
  */
 function markActivity (session) {
-  if (!session.busySince) session.busySince = Date.now()
   clearTimeout(session.idleTimer)
 
   session.idleTimer = setTimeout(() => {
-    const worked = Date.now() - session.busySince
-    session.busySince = null
+    if (!session.submittedAt) return
 
-    // Bara om du själv satt igång något. Utan det villkoret aviserade
-    // programmet så fort en session öppnats, eftersom uppstarten av Claude
-    // Code ritar sitt gränssnitt i flera sekunder och sedan tystnar.
-    if (worked < MIN_WORK_MS || !session.awaitingResult) return
+    const waited = Date.now() - session.submittedAt
+    session.submittedAt = null
 
-    session.awaitingResult = false
-    notifySession(session)
+    // Gick det fort behövde du aldrig veta om det.
+    if (waited >= MIN_WORK_MS) notifySession(session)
   }, IDLE_MS)
 }
 
