@@ -1,6 +1,6 @@
 {
   "name": "promptforge",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "private": true,
   "description": "Anpassningsbar Windows-terminal dar du valjer vilka verktyg som ska finnas i miljon",
   "author": "Jimmy Andersen",

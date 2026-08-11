@@ -1022,7 +1022,13 @@ function moveCursorToClick (id, term, wrap, event) {
 
 function registerSession (id, parts, config, meta) {
   const { wrap, term, fit } = parts
-  term.onData(data => window.forge.write(id, data))
+
+  term.onData(data => {
+    window.forge.write(id, data)
+    // Tangenttryck är signalen om att du väntar dig ett svar. Startkommandot
+    // skickas inte den här vägen, så det armerar med flit inte aviseringen.
+    session.awaitingResult = true
+  })
 
   // Urklippet hanteras här i stället för av xterm, eftersom Ctrl+C måste kunna
   // betyda två olika saker beroende på om något är markerat.
@@ -1119,6 +1125,8 @@ function registerSession (id, parts, config, meta) {
     defaultName: (meta && meta.defaultName) || 'Session',
     setup: config,
     dead: false,
+    // Sätts när du skriver något, nollställs när en avisering gått ut.
+    awaitingResult: false,
   }
 
   // Program säger till att de är klara med terminalklockan eller med en
@@ -1693,7 +1701,14 @@ function markActivity (session) {
   session.idleTimer = setTimeout(() => {
     const worked = Date.now() - session.busySince
     session.busySince = null
-    if (worked >= MIN_WORK_MS) notifySession(session)
+
+    // Bara om du själv satt igång något. Utan det villkoret aviserade
+    // programmet så fort en session öppnats, eftersom uppstarten av Claude
+    // Code ritar sitt gränssnitt i flera sekunder och sedan tystnar.
+    if (worked < MIN_WORK_MS || !session.awaitingResult) return
+
+    session.awaitingResult = false
+    notifySession(session)
   }, IDLE_MS)
 }
 
