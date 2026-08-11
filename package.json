@@ -4,6 +4,7 @@
   "private": true,
   "description": "Anpassningsbar Windows-terminal dar du valjer vilka verktyg som ska finnas i miljon",
   "author": "Jimmy Andersen",
+  "license": "MIT",
   "repository": {
     "type": "git",
     "url": "https://github.com/74wille/PromptForge.git"

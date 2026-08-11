@@ -27,6 +27,11 @@ npm start
 Kräver Node.js. Om Electron inte startar efter `npm install`, se
 felsökningen längst ned.
 
+## Licens
+
+MIT — se `LICENSE`. De medföljande typsnitten har egen licens, SIL Open Font
+License 1.1, och licenstexten för varje familj ligger i `src/renderer/fonts/`.
+
 ## Kortkommandon
 
 | Tangenter | Gör |
