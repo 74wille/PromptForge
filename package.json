@@ -47,7 +47,8 @@
       {
         "provider": "github",
         "owner": "74wille",
-        "repo": "PromptForge"
+        "repo": "PromptForge",
+        "releaseType": "release"
       }
     ],
     "win": {
