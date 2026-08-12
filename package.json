@@ -1,6 +1,6 @@
 {
   "name": "promptforge",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "private": true,
   "description": "Anpassningsbar Windows-terminal dar du valjer vilka verktyg som ska finnas i miljon",
   "author": "Jimmy Andersen",
@@ -63,7 +63,8 @@
       "allowToChangeInstallationDirectory": true,
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true,
-      "shortcutName": "PromptForge"
+      "shortcutName": "PromptForge",
+      "include": "build/installer.nsh"
     }
   }
 }

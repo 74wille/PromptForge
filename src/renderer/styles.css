@@ -365,6 +365,16 @@ body.is-maximized .win-btn [data-icon="restore"] { display: block; }
 }
 
 .hint { margin: 0 0 10px; font-size: 11.5px; color: var(--muted); }
+
+/* Samma storlek som en vanlig ledtext, men i varningsfärg och med en linje i
+   kanten — den ska gå att se utan att skrika i en ruta full av inställningar. */
+.hint--warn {
+  padding: 7px 9px;
+  border-left: 2px solid var(--danger);
+  border-radius: 0 6px 6px 0;
+  background: color-mix(in srgb, var(--danger) 10%, transparent);
+  color: var(--text);
+}
 .card h3 + .options,
 .card h3 + .segmented,
 .card h3 + .theme-grid,

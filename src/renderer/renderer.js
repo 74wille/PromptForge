@@ -37,6 +37,8 @@ const state = {
   shells: [],
   tools: [],
   home: '',
+  // Mappen huvudprocessen öppnar sessioner i när inget eget val gjorts.
+  defaultCwd: '',
   selectedShell: null,
   selectedTools: new Set(),
   // Startmapp för nya sessioner. null betyder hemmappen.
@@ -736,8 +738,25 @@ function renderCustomTools () {
   })))
 }
 
+/**
+ * Visar startmappen, och varnar när den är hemmappen.
+ *
+ * Claude Code minns "Do you trust the files in this folder?" per mapp, men
+ * sparar aldrig svaret för hemmappen — den är för bred för att betros i sin
+ * helhet. Startar man sessionerna där kommer frågan därför tillbaka varje gång,
+ * och det ser ut som ett fel i PromptForge. Varningen pekar ut vad som faktiskt
+ * behöver göras: välja en riktig projektmapp.
+ */
 function updateCwd () {
-  el('cwd-value').textContent = state.cwd || state.home || '~'
+  const folder = state.cwd || state.defaultCwd || state.home
+  el('cwd-value').textContent = folder || '~'
+
+  const isHome = Boolean(folder) && Boolean(state.home) &&
+    folder.replace(/[\\/]+$/, '').toLowerCase() === state.home.replace(/[\\/]+$/, '').toLowerCase()
+
+  const warning = el('cwd-warning')
+  warning.textContent = isHome ? t('env.cwdHomeWarning') : ''
+  warning.hidden = !isHome
 }
 
 // --- Sessioner --------------------------------------------------------------
@@ -1111,7 +1130,7 @@ function registerSession (id, parts, config, meta) {
   tab.className = 'session-tab'
   // Uppsättningen bakom fliken syns som verktygstips nu när namnet är numrerat.
   tab.title = setupLabel(config)
-  tab.addEventListener('click', () => setActive(id))
+  // Ingen click-lyssnare: bytet sker redan vid nedtryckningen, se beginTabDrag.
   tab.addEventListener('contextmenu', event => {
     event.preventDefault()
     openTabMenu(id, event.clientX, event.clientY)
@@ -1253,8 +1272,31 @@ let tabDrag = null
 function beginTabDrag (id, event) {
   if (event.button !== 0) return
 
+  // Ett klick i namnfältet ska sätta skrivmarkören där, inte lyfta fliken.
+  if (event.target.closest && event.target.closest('.session-rename')) return
+
   const session = state.sessions.get(id)
   if (!session) return
+
+  /**
+   * Fliken byts redan vid nedtryckningen, inte vid klicket.
+   *
+   * Ett klick kräver att musen ligger stilla: rör den sig mer än fem bildpunkter
+   * räknas det som en dragning, och då göms fliken (se liftTab) innan knappen
+   * släpps. Webbläsaren har då ingen gemensam nod för ned- och upptryckningen
+   * och skickar aldrig något klick — man tryckte på fliken och ingenting hände.
+   * Med flera sessioner igång var det just det som gjorde dem svåra att byta
+   * mellan: minsta darrning i handen åt upp klicket.
+   *
+   * Nedtryckningen är dessutom det rätta ögonblicket: så beter sig flikar både
+   * i webbläsare och i Windows Terminal.
+   */
+  closeTabMenu()
+  setActive(id)
+
+  // Utan detta flyttar webbläsaren tangentbordsfokus från terminalen till sidan
+  // i samma stund man rör vid fliken, och nästa tangenttryck hamnar ingenstans.
+  event.preventDefault()
 
   const box = session.tab.getBoundingClientRect()
   tabDrag = {
@@ -1823,6 +1865,7 @@ async function init () {
   state.shells = info.shells
   state.tools = info.tools
   state.home = info.home || ''
+  state.defaultCwd = info.defaultCwd || ''
   state.primary = info.primary !== false
 
   const chosen = state.shells.find(shell => shell.id === state.selectedShell && shell.available)

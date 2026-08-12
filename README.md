@@ -70,6 +70,23 @@ hand.
 **Klicka på en URL** för att öppna den i webbläsaren. Bara `http` och `https` —
 andra scheman skulle låta terminalutdata starta program på datorn.
 
+## Startmapp
+
+**Miljö → Startmapp** styr var nya sessioner öppnas. Görs inget val används
+`Dokument`.
+
+Medvetet inte hemmappen, och skälet är konkret: Claude Code frågar *"Do you
+trust the files in this folder?"* en gång per mapp och minns svaret — utom för
+hemmappen, där svaret aldrig sparas. Det står i klartext i Claude Codes egen
+kod: *"home-directory trust is never saved"*. Startade PromptForge där skulle
+frågan komma tillbaka vid varje ny session, hur många gånger man än svarade ja,
+och det skulle se ut som ett fel i PromptForge.
+
+Väljer man ändå hemmappen som startmapp står varningen kvar i panelen.
+
+Trust ärvs nedåt i katalogträdet: är `C:\Kod` betrodd är allt under den också
+betrott.
+
 ## Typsnitt
 
 Sex typsnitt följer med programmet och behöver inte installeras: **JetBrains
@@ -121,8 +138,13 @@ npm run dist    # bygger dist/PromptForge Setup <version>.exe
 `.node`-filer går inte att läsa inifrån ett arkiv, och sessionerna skulle inte
 starta.
 
-Kör om `tools\install-context-menu.ps1` efter en installation. Skriptet väljer
-den installerade appen före ett lokalt bygge, och bygget före utvecklingsläget.
+Högerklicksmenyn i Utforskaren läggs till av installationsprogrammet självt, via
+`build/installer.nsh`, och tas bort igen vid avinstallation. Posterna skrivs
+under `HKCU` och kräver inga administratörsrättigheter.
+
+`tools\install-context-menu.ps1` finns kvar för utvecklingsläget, där det inte
+finns någon installation som kan ha lagt in posten. Skriptet väljer den
+installerade appen före ett lokalt bygge, och bygget före utvecklingsläget.
 
 ## Uppbyggnad
 

@@ -83,6 +83,34 @@ function folderFromArgs (argv) {
 
 const launchFolder = folderFromArgs(process.argv)
 
+/**
+ * Mappen nya sessioner öppnas i när användaren inte pekat ut någon egen.
+ *
+ * Medvetet Dokument och inte hemmappen. Claude Code frågar "Do you trust the
+ * files in this folder?" en gång per mapp och minns svaret — utom för just
+ * hemmappen, där svaret aldrig sparas av säkerhetsskäl. Startade vi där skulle
+ * frågan därför komma tillbaka vid varje ny session, hur många gånger man än
+ * svarade ja.
+ */
+function defaultStartDir () {
+  const candidates = []
+  try {
+    candidates.push(app.getPath('documents'))
+  } catch {
+    // Windows kan sakna kända mappar i udda uppsättningar.
+  }
+  if (process.env.USERPROFILE) candidates.push(path.join(process.env.USERPROFILE, 'Documents'))
+
+  for (const dir of candidates) {
+    try {
+      if (dir && fs.statSync(dir).isDirectory()) return dir
+    } catch {
+      // Nästa kandidat.
+    }
+  }
+  return process.env.USERPROFILE || process.env.HOME || undefined
+}
+
 // Byggs av tools/make-icon.js. Saknas den kor Electron pa sin egen ikon.
 const ICON = path.join(__dirname, '..', '..', 'build', 'icon.ico')
 
@@ -191,6 +219,7 @@ ipcMain.handle('env:describe', event => ({
   shells: resolveShells(),
   tools: resolveTools(),
   home: process.env.USERPROFILE || '',
+  defaultCwd: defaultStartDir() || '',
   launchCwd: launchFolder,
   // Bara huvudfonstret sparar vilka flikar som ar uppe. Annars skulle varje
   // utdraget fonster skriva over listan med sin egen enda flik.
@@ -204,8 +233,8 @@ ipcMain.handle('pty:spawn', (event, { shellId, toolIds, extraDirs, cwd, cols, ro
   const env = buildEnvironment(toolIds || [], resolveTools(), extraDirs || [])
 
   // En sparad startmapp kan ha hunnit tas bort sedan den valdes. Faller
-  // tillbaka pa hemmappen i stallet for att lata hela sessionen misslyckas.
-  const startIn = cwd && fs.existsSync(cwd) ? cwd : undefined
+  // tillbaka pa standardmappen i stallet for att lata hela sessionen misslyckas.
+  const startIn = cwd && fs.existsSync(cwd) ? cwd : defaultStartDir()
 
   const id = ptys.spawn({ shell, env, cwd: startIn, cols, rows })
   sessionOwner.set(id, event.sender.id)
